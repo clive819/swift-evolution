@@ -148,15 +148,15 @@ extension Target.PluginUsage {
 }
 ```
 
-This proposal adds an optional `hostPlatforms` parameter to `TargetDependencyCondition.when`. The existing `platforms` parameter continues to identify target platforms. The existing overloads stay available. The following declaration shows the new API shape:
+This proposal adds an overload of `TargetDependencyCondition.when` that includes `hostPlatforms`. This parameter is required in the new overload. A host filter is still optional because the existing overloads stay available. The existing `platforms` parameter continues to identify target platforms. The following declaration shows the new API shape:
 
 ```swift
 extension TargetDependencyCondition {
     /// Creates a condition for a target dependency or plugin usage.
     ///
-    /// All specified filters must match. A nil argument does not add a
-    /// constraint on that axis. The method returns nil if all arguments
-    /// are nil or empty.
+    /// All specified filters must match. A nil value for platforms or traits
+    /// does not add a constraint on that axis. The method returns nil if all
+    /// arguments are nil or empty.
     ///
     /// - Parameters:
     ///   - platforms: The applicable target platforms.
@@ -165,7 +165,7 @@ extension TargetDependencyCondition {
     @available(_PackageDescription, introduced: 6.5)
     public static func when(
         platforms: [Platform]? = nil,
-        hostPlatforms: [Platform]? = nil,
+        hostPlatforms: [Platform],
         traits: Set<String>? = nil
     ) -> TargetDependencyCondition?
 }
@@ -196,7 +196,7 @@ This filter is useful when a plugin target has a different build tool for each h
 )
 ```
 
-Each generator is a target dependency of the plugin target. SwiftPM builds only the generator for the current host. A source or library target can also use this filter. In that case, the active dependency edges intentionally depend on the build host.
+Each generator is a target dependency of the plugin target. SwiftPM builds only the generator for the current host. Host filtering is most useful for build-time dependencies, such as tools used by plugins. A source or library target can also use this filter. In that case, its dependency graph depends on the build host. The target must compile and link without a dependency that the host filter excludes.
 
 ### Plugin usage behavior
 
@@ -259,6 +259,12 @@ An alternative approach would be to make the *package-level* dependency on the p
 This is the status quo. It works, but it is inconsistent with the rest of the manifest API, verbose, and misleading under cross-compilation because `Package.swift` is parsed on the host. As more packages adopt plugins and support more platforms, this workaround will become more common and less acceptable.
 
 ## Future directions
+
+### Target-platform information for build tool plugins
+
+[SE-0303](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0303-swiftpm-extensible-build-tools.md) identifies target-platform information as a future direction. A future version of SwiftPM can run plugins as part of build planning. SwiftPM can then give the target platform to the plugin. This work includes changes to plugin invocation, caching, work directories, output paths, and IDE integration. It is outside the scope of this proposal.
+
+Today, the plugin does not receive the target platform. Thus, SwiftPM applies the target-platform condition after the plugin returns its commands. SwiftPM applies the same condition to the commands and their declared outputs.
 
 ### Finer-grained platform filtering
 
