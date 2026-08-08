@@ -260,11 +260,13 @@ This is the status quo. It works, but it is inconsistent with the rest of the ma
 
 ## Future directions
 
-### Target-platform information for build tool plugins
+### Target-platform control for plugin authors
 
-[SE-0303](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0303-swiftpm-extensible-build-tools.md) identifies target-platform information as a future direction. A future version of SwiftPM can run plugins as part of build planning. SwiftPM can then give the target platform to the plugin. This work includes changes to plugin invocation, caching, work directories, output paths, and IDE integration. It is outside the scope of this proposal.
+Today, a build tool plugin does not receive the target platform. This proposal applies the target-platform condition on a plugin usage to all commands and declared outputs from that usage.
 
-Today, the plugin does not receive the target platform. Thus, SwiftPM applies the target-platform condition after the plugin returns its commands. SwiftPM applies the same condition to the commands and their declared outputs.
+A future proposal can let a plugin add a condition to each `Command`. This lets the plugin author provide different commands for different target platforms. SwiftPM first invokes the plugin. It then applies each condition to the command and its declared outputs.
+
+[SE-0303](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0303-swiftpm-extensible-build-tools.md) also identifies target-platform information as a future direction. SwiftPM can provide this information by running plugins as part of build planning. This design can also let SwiftPM skip an invocation when a condition does not match. It affects plugin invocation, caching, work directories, output paths, and IDE integration. These changes are outside the scope of this proposal.
 
 ### Finer-grained platform filtering
 
